@@ -667,14 +667,160 @@ const promiseBarrier = (n) => {
   return funcs;
 };
 
-let [e1, e2] = promiseBarrier(2);
-Promise.resolve(0)
-.then(f1)
-.then(x => { console.log("c1 s1 b"); return x; })
-.then(x => { console.log("c1 s2 b"); return x; })
-Promise.resolve(0)
-.then(x => { console.log("c2 s1 a"); return x; })
-.then(x => { console.log("c2 s2 a"); return x; })
-.then(x => { console.log("c2 s3 a"); return x; })
-.then(x => { console.log("c2 s4 a"); return x; })
-.then(f2)
+//let [e1, e2] = promiseBarrier(2);
+//Promise.resolve(0)
+//.then(f1)
+//.then(x => { console.log("c1 s1 b"); return x; })
+//.then(x => { console.log("c1 s2 b"); return x; })
+//Promise.resolve(0)
+//.then(x => { console.log("c2 s1 a"); return x; })
+//.then(x => { console.log("c2 s2 a"); return x; })
+//.then(x => { console.log("c2 s3 a"); return x; })
+//.then(x => { console.log("c2 s4 a"); return x; })
+//.then(f2)
+
+//32extra
+const timedPromiseBarrier = (n, t) => {
+  let values = [];
+  let resolvers = [];
+  let called = [];
+  let count = 0;
+  let timerStarted = false;
+  let timeoutReached = false;
+  let timer = null;
+
+  const funcs = [];
+  for (let i = 0; i < n; i++) {
+    funcs[i] = (x) => {
+      values[i] = x;
+      called[i] = true;
+      return new Promise((resolve) => {
+        resolvers[i] = resolve;
+        count++;
+        if (!timerStarted) {
+          timerStarted = true;
+          timer = setTimeout(() => {
+            timeoutReached = true;
+            for (let j = 0; j < n; j++) {
+              if (called[j] && resolvers[j]) {
+                resolvers[j](values[j]);
+                resolvers[j] = null;
+              }
+            }
+          }, t);
+        }
+        if (timeoutReached) {
+          resolve(values[i]);
+        } else if (count === n) {
+          clearTimeout(timer);
+          for (let j = 0; j < n; j++) {
+            if (resolvers[j]) {
+              resolvers[j](values[j]);
+              resolvers[j] = null;
+            }
+          }
+        }
+      });
+    };
+  }
+  return funcs;
+};
+
+//33
+function PromisedPriorityQueue() {
+  this.queue = [];
+
+  this.decorate = (promise, priority) => {
+    let entry = {
+      promise,
+      priority,
+      resolved: false,
+      value: undefined,
+      resolveQ: null,
+      q: null,
+    };
+
+    entry.q = new Promise((resolve) => {
+      entry.resolveQ = resolve;
+    });
+
+    promise.then((value) => {
+      entry.resolved = true;
+      entry.value = value;
+      this._process();
+    });
+
+    this.queue.push(entry);
+    this._process();
+    return entry.q;
+  };
+
+  this._process = () => {
+    if (this.queue.length === 0) return;
+
+    let maxPriority = Math.max(...this.queue.map(e => e.priority));
+    let candidates = this.queue.filter(e => e.priority === maxPriority);
+
+    let toProcess = candidates.find(e => e.resolved);
+    if (!toProcess) return;
+
+    toProcess.resolveQ(toProcess.value);
+    let idx = this.queue.indexOf(toProcess);
+    this.queue.splice(idx, 1);
+
+    this._process();
+  };
+}
+
+//33extra
+function PromisedPriorityQueueExtra() {
+  this.queue = [];
+
+  this.decorate = (promise, priority) => {
+    let entry = {
+      promise,
+      priority,
+      resolved: false,
+      rejected: false,
+      value: undefined,
+      error: undefined,
+      resolveQ: null,
+      rejectQ: null,
+      q: null,
+    };
+
+    entry.q = new Promise((resolve, reject) => {
+      entry.resolveQ = resolve;
+      entry.rejectQ = reject;
+    });
+
+    promise.then((value) => {
+      entry.resolved = true;
+      entry.value = value;
+      this._process();
+    }).catch((err) => {
+      entry.rejected = true;
+      entry.error = err;
+      entry.rejectQ(err);
+      let idx = this.queue.indexOf(entry);
+      if (idx !== -1) this.queue.splice(idx, 1);
+      this._process();
+    });
+
+    this.queue.push(entry);
+    this._process();
+    return entry.q;
+  };
+
+  this._process = () => {
+    if (this.queue.length === 0) return;
+    let maxPriority = Math.max(...this.queue.map(e => e.priority));
+    let candidates = this.queue.filter(e => e.priority === maxPriority);
+    let toProcess = candidates.find(e => e.resolved);
+    if (!toProcess) return;
+    toProcess.resolveQ(toProcess.value);
+    let idx = this.queue.indexOf(toProcess);
+    if (idx !== -1) this.queue.splice(idx, 1);
+    this._process();
+  };
+}
