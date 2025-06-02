@@ -50,6 +50,7 @@ console.printaki2 = (() => {
 
 //8
 const fs = require("node:fs");
+const { register } = require("node:module");
 f6 = function (list, final_callback) {
   let result = [];
   let count = 0;
@@ -314,16 +315,136 @@ const readIntoFuture = function (filename) {
 
 //17
 function asyncToFuture(f) {
-  return function(...args) {
-    const future2 = { isDone: false, result: null};
+  return function (...args) {
+    const future2 = { isDone: false, result: null };
     f(...args, (err, result) => {
       future2.isDone = true;
       future2.result = err ? null : result;
-    })
+    });
     return future2;
-  }  
+  };
 }
 
-const readIntoFuture2 = asyncToFuture(fs.readFile);
-let future2 = readIntoFuture2("fileA.txt", "utf8");
-console.log(future2);
+//const readIntoFuture2 = asyncToFuture(fs.readFile);
+//let future2 = readIntoFuture2("fileA.txt", "utf8");
+//console.log(future2);
+
+//18
+function asyncToEnhancedFuture(f) {
+  return function (...args) {
+    const enchancedFuture = {
+      isDone: false,
+      result: null,
+      registerCallback: function (cb) {
+        if (this.isDone) {
+          cb(this);
+        } else {
+          this._cb = cb;
+        }
+      },
+      _cb: null,
+    };
+
+    f(...args, (err, result) => {
+      enchancedFuture.isDone = true;
+      enchancedFuture.result = err ? null : result;
+      if (enchancedFuture._cb) {
+        enchancedFuture._cb(enchancedFuture);
+      }
+    });
+
+    return enchancedFuture;
+  };
+}
+
+//const utfReadFile = (f, c) => fs.readFile(f, "utf-8", c);
+//const readIntoEnhancedFuture = asyncToEnhancedFuture(utfReadFile);
+//enhancedFuture = readIntoEnhancedFuture("fileA.txt");
+//enhancedFuture.registerCallback(function (ef) {
+//  console.log(ef);
+//});
+
+//19
+function when(F1) {
+  return {
+    do: function (F2) {
+      F1(F2);
+    },
+  };
+}
+
+//F1 = function (callback) {
+//  fs.readFile("fileA.txt", "utf-8", callback);
+//};
+//F2 = function (error, result) {
+//  console.log(result);
+//};
+//when(F1).do(F2);
+
+//20
+function When(f1) {
+  return {
+    and: function (f2) {
+      return {
+        do: function (f3) {
+          let err1 = undefined;
+          let err2 = undefined;
+          let res1 = undefined;
+          let res2 = undefined;
+
+          let done1 = false;
+          let done2 = false;
+
+          f1((err, res) => {
+            err1 = err;
+            res1 = res;
+            done1 = true;
+            if (done2) {
+              f3(err1, err2, res1, res2);
+            }
+          });
+
+          f2((err, res) => {
+            err2 = err;
+            res2 = res;
+            done2 = true;
+            if (done1) {
+              f3(err1, err2, res1, res2);
+            }
+          });
+        },
+      };
+    },
+  };
+}
+
+//const g1 = function (callback) {
+//  fs.readFile("fileA.txt", "utf-8", callback);
+//};
+//const g2 = function (callback) {
+//  fs.readFile("fileB.txt", "utf-8", callback);
+//};
+//const g3 = function (err1, err2, res1, res2) {
+//  console.log(res1, res2);
+//};
+//
+//When(g1).and(g2).do(g3)
+
+const composer = (f1, f2) => {
+  return function (...args){
+    const result1 = f1(...args);
+    return f2(result1);
+  }
+};
+
+const h1 = function (a) {
+  return a + 1;
+};
+const h3 = composer(h1, h1);
+console.log(h3(3))
+
+const h4 = function (a) {
+  return a * 3;
+};
+const h5 = composer(h3, h4);
+console.log(h5(3))
