@@ -517,8 +517,8 @@ const antipromise = (f) => {
   });
 };
 
-antipromise(Promise.reject(0)).then(console.log);
-antipromise(Promise.resolve(1)).catch(console.log);
+//antipromise(Promise.reject(0)).then(console.log);
+//antipromise(Promise.resolve(1)).catch(console.log);
 
 //25
 const promiseToCallback = (f) => {
@@ -605,8 +605,8 @@ const mergedPromise = (p) => {
     (error) => error
   );
 };
-mergedPromise(Promise.resolve(0)).then(console.log);
-mergedPromise(Promise.reject(1)).then(console.log);
+//mergedPromise(Promise.resolve(0)).then(console.log);
+//mergedPromise(Promise.reject(1)).then(console.log);
 
 //30
 const promiseComposer = (f1, f2) => {
@@ -618,27 +618,63 @@ const promiseComposer = (f1, f2) => {
   };
 };
 
-const b1 = (x) => new Promise((resolve, reject) => resolve(x + 1));
-promiseComposer(b1, b1)(3).then(console.log);
-
-const b2 = (x) => new Promise((resolve, reject) => reject("always fails"));
-promiseComposer(b1, b2)(3).catch(console.log);
-
-let b4 = (x) =>
-  new Promise((resolve, reject) => setTimeout(() => resolve(x * 2), 500));
-promiseComposer(b1, b4)(3).then(console.log);
+//const b1 = (x) => new Promise((resolve, reject) => resolve(x + 1));
+//promiseComposer(b1, b1)(3).then(console.log);
+//
+//const b2 = (x) => new Promise((resolve, reject) => reject("always fails"));
+//promiseComposer(b1, b2)(3).catch(console.log);
+//
+//let b4 = (x) =>
+//  new Promise((resolve, reject) => setTimeout(() => resolve(x * 2), 500));
+//promiseComposer(b1, b4)(3).then(console.log);
 
 //31
 const parallelPromise = (...args) => {
   return Promise.all(args)
 }
 
-let d1 = parallelPromise(Promise.resolve(0), Promise.resolve(1));
-d1.then(console.log);
+//let d1 = parallelPromise(Promise.resolve(0), Promise.resolve(1));
+//d1.then(console.log);
+//
+//let plast = new Promise((resolve, reject) =>
+//setTimeout(() => resolve('left'), 200));
+//let pfirst = new Promise((resolve, reject) =>
+//setTimeout(() => resolve('right'), 100));
+//let d2 = parallelPromise(plast, pfirst);
+//d2.then(console.log);
 
-let plast = new Promise((resolve, reject) =>
-setTimeout(() => resolve('left'), 200));
-let pfirst = new Promise((resolve, reject) =>
-setTimeout(() => resolve('right'), 100));
-let d2 = parallelPromise(plast, pfirst);
-d2.then(console.log);
+//32
+const promiseBarrier = (n) => {
+  let values = [];
+  let resolvers = [];
+  let count = 0;
+
+  let funcs = [];
+  for (let i = 0; i < n; i++) {
+    funcs[i] = (x) => {
+      values[i] = x;
+      return new Promise((resolve) => {
+        resolvers[i] = resolve;
+        count++;
+        if (count === n) {
+          for (let j = 0; j < n; j++) {
+            resolvers[j](values[j]);
+          }
+        }
+      });
+    };
+  }
+  return funcs;
+};
+
+let [e1, e2] = promiseBarrier(2);
+Promise.resolve(0)
+.then(f1)
+.then(x => { console.log("c1 s1 b"); return x; })
+.then(x => { console.log("c1 s2 b"); return x; })
+Promise.resolve(0)
+.then(x => { console.log("c2 s1 a"); return x; })
+.then(x => { console.log("c2 s2 a"); return x; })
+.then(x => { console.log("c2 s3 a"); return x; })
+.then(x => { console.log("c2 s4 a"); return x; })
+.then(f2)
