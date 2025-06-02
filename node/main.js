@@ -330,6 +330,10 @@ function asyncToFuture(f) {
 //console.log(future2);
 
 //18
+function readIntoEnhancedFuture(f) {
+  return asyncToEnhancedFuture(f);
+}
+
 function asyncToEnhancedFuture(f) {
   return function (...args) {
     const enchancedFuture = {
@@ -523,7 +527,7 @@ const promiseToCallback = (f) => {
       (result) => callback(null, result),
       (error) => callback(error, null)
     );
-  }
+  };
 };
 
 //const isEven = (x) =>
@@ -551,12 +555,12 @@ const readToPromise = (filename) => {
       }
     });
   });
-}
+};
 
-readToPromise("fileA.txt").then(x => console.log("Contents: ", x))
-.catch(x => console.log("Error: ", x));
-readToPromise("notfound.txt").then(x => console.log("Contents: ", x))
-.catch(x => console.log("Error: ", x));
+//readToPromise("fileA.txt").then(x => console.log("Contents: ", x))
+//.catch(x => console.log("Error: ", x));
+//readToPromise("notfound.txt").then(x => console.log("Contents: ", x))
+//.catch(x => console.log("Error: ", x));
 
 //27
 const callbackToPromise = (f) => {
@@ -571,8 +575,46 @@ const callbackToPromise = (f) => {
       });
     });
   };
-}
+};
 
-const readToPromise2 = callbackToPromise(fs.readFile);
-readToPromise2("a1.txt").then(x => console.log("Contents: ", x))
-.catch(x => console.log("Error: ", x));
+//const readToPromise2 = callbackToPromise(fs.readFile);
+//readToPromise2("a1.txt").then(x => console.log("Contents: ", x))
+//.catch(x => console.log("Error: ", x));
+
+//28
+//const readIntoEnhancedFuture = require('./18').readIntoEnhancedFuture;
+//module.exports = {readIntoEnhancedFuture}
+const enhancedFutureToPromise = (enhancedFuture) => {
+  return new Promise((resolve, reject) => {
+    enhancedFuture.registerCallback((ef) => {
+      if (ef.isDone) {
+        if (ef.result !== null) {
+          resolve(ef.result);
+        } else {
+          reject(new Error("Operation failed"));
+        }
+      }
+    });
+  });
+};
+
+//29
+const mergedPromise = (p) => {
+  return p.then(
+    (result) => result,
+    (error) => error
+  );
+};
+mergedPromise(Promise.resolve(0)).then(console.log);
+mergedPromise(Promise.reject(1)).then(console.log);
+
+//30
+const b1 = (x) => new Promise((resolve, reject) => resolve(x + 1));
+promiseComposer(b1, b1)(3).then(console.log);
+
+const b2 = (x) => new Promise((resolve, reject) => reject("always fails"));
+promiseComposer(b1, b2)(3).catch(console.log);
+
+let b4 = (x) =>
+  new Promise((resolve, reject) => setTimeout(() => resolve(x * 2), 500));
+promiseComposer(b1, b4)(3).then(console.log);
