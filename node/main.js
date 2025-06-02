@@ -112,9 +112,218 @@ Because the
 
 //11
 function asyncMap(list, f, callback2) {
-  list.map((element, inx) => f(element))
+  if (!Array.isArray(list) || list.length === 0) {
+    return callback2(null, []);
+  }
+
+  let results = new Array(list.length);
+  let count = 0;
+  let errorOccurred = false;
+
+  list.forEach((element, idx) => {
+    f(element, (err, result) => {
+      if (errorOccurred) {
+        return;
+      }
+
+      if (err) {
+        errorOccurred = true;
+        return callback2(err, null);
+      }
+
+      results[idx] = result;
+      count++;
+
+      if (count === list.length) {
+        callback2(null, results);
+      }
+    });
+  });
 }
 
-function callback2(err, resultList) {...}
-function f(a, callback1) {...}
-function callback1(err, result) {...}
+function callback2(err, resultList) {
+  if (err) {
+    console.log("Error:", err);
+  } else {
+    console.log("Results:", resultList);
+  }
+}
+
+function f(a, callback1) {
+  fs.readFile(a, "utf8", callback1);
+}
+function callback1(err, result) {
+  if (err) {
+    console.error("Operation failed:", err);
+  } else {
+    console.log("Operation succeeded:", result);
+  }
+}
+
+//asyncMap(['fileA.txt', 'fileB.txt'], f, callback2);
+
+const o1 = {
+  count: 0,
+  notify: null,
+  inc: function () {
+    this.count++;
+    if (this.notify) {
+      this.notify(this.count);
+    }
+  },
+};
+
+//o1.count = 1; o1.notify = function() { console.log("notified") }; o1.inc()
+
+//12extra the same above
+
+//13
+const Counter = function () {
+  (this.count = 1),
+    (this.notify = null),
+    (this.setNotify = function (callback) {
+      this.notify = callback;
+    });
+  this.inc = function () {
+    this.count++;
+    if (this.notify) {
+      this.notify(this.count);
+    }
+  };
+};
+
+//const o2 = new Counter();
+//o2.setNotify(function (a) {
+//  console.log(a);
+//});
+//o2.inc();
+
+//13extra
+const CounterExtra = function () {
+  let count = 1;
+  let notify = null;
+  function setNotify(callback) {
+    notify = callback;
+  }
+
+  function inc() {
+    count++;
+    if (notify) {
+      notify(count);
+    }
+  }
+
+  return {
+    inc,
+    setNotify,
+  };
+};
+
+//const o2extra = new CounterExtra();
+//o2.setNotify(function (a) {
+//  console.log(a);
+//});
+//o2.inc();
+
+//14
+class CounterClass {
+  constructor() {
+    this.count = 1;
+    this.notify = null;
+  }
+
+  setNotify(callback) {
+    this.notify = callback;
+  }
+
+  inc() {
+    this.count++;
+    if (this.notify) {
+      this.notify(this.count);
+    }
+  }
+}
+
+class DecreasingCounter extends CounterClass {
+  dec() {
+    this.count--;
+    if (this.notify) {
+      this.notify(this.count);
+    }
+  }
+}
+
+//const dc = new DecreasingCounter();
+//dc.setNotify(function (a) {
+//  console.log("Decreasing Counter:", a);
+//});
+//dc.inc();
+//dc.dec();
+//dc.dec();
+
+//15
+const o3 = function () {
+  let count = 1;
+  let notify = null;
+
+  function setNotify(callback) {
+    notify = callback;
+  }
+
+  function inc() {
+    count++;
+    if (notify) {
+      notify(count);
+    }
+  }
+
+  return {
+    inc,
+    setNotify,
+  };
+};
+
+//const O3 = new o3();
+//O3.setNotify(function (a) {
+//  console.log("Module pattern:", a);
+//});
+//O3.inc();
+
+//16
+future = { isDone: false, result: null };
+const readIntoFuture = function (filename) {
+  fs.promises
+    .readFile(filename, "utf8")
+    .then((data) => {
+      future.isDone = true;
+      future.result = data;
+    })
+    .catch((err) => {
+      console.error("Error reading file:", err);
+      future.isDone = true;
+      future.result = null;
+    });
+};
+
+//console.log(future)
+//readIntoFuture("fileA.txt");
+//console.log(future)
+//setTimeout(() => {
+//  console.log(future);
+//}, 1000);
+
+//17
+function asyncToFuture(f) {
+  return function(...args) {
+    const future2 = { isDone: false, result: null};
+    f(...args, (err, result) => {
+      future2.isDone = true;
+      future2.result = err ? null : result;
+    })
+    return future2;
+  }  
+}
+
+const readIntoFuture2 = asyncToFuture(fs.readFile);
+let future2 = readIntoFuture2("fileA.txt", "utf8");
+console.log(future2);
