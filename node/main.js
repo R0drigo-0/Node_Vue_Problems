@@ -609,6 +609,15 @@ mergedPromise(Promise.resolve(0)).then(console.log);
 mergedPromise(Promise.reject(1)).then(console.log);
 
 //30
+const promiseComposer = (f1, f2) => {
+  return function(x) {
+    return f1(x).then(
+      res1 => f2(res1),
+      err => Promise.reject(err)
+    );
+  };
+};
+
 const b1 = (x) => new Promise((resolve, reject) => resolve(x + 1));
 promiseComposer(b1, b1)(3).then(console.log);
 
@@ -618,3 +627,18 @@ promiseComposer(b1, b2)(3).catch(console.log);
 let b4 = (x) =>
   new Promise((resolve, reject) => setTimeout(() => resolve(x * 2), 500));
 promiseComposer(b1, b4)(3).then(console.log);
+
+//31
+const parallelPromise = (...args) => {
+  return Promise.all(args)
+}
+
+let d1 = parallelPromise(Promise.resolve(0), Promise.resolve(1));
+d1.then(console.log);
+
+let plast = new Promise((resolve, reject) =>
+setTimeout(() => resolve('left'), 200));
+let pfirst = new Promise((resolve, reject) =>
+setTimeout(() => resolve('right'), 100));
+let d2 = parallelPromise(plast, pfirst);
+d2.then(console.log);
