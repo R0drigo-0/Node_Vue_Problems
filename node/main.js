@@ -431,20 +431,148 @@ function When(f1) {
 //When(g1).and(g2).do(g3)
 
 const composer = (f1, f2) => {
-  return function (...args){
+  return function (...args) {
     const result1 = f1(...args);
     return f2(result1);
-  }
+  };
 };
 
 const h1 = function (a) {
   return a + 1;
 };
 const h3 = composer(h1, h1);
-console.log(h3(3))
+//console.log(h3(3))
 
 const h4 = function (a) {
   return a * 3;
 };
 const h5 = composer(h3, h4);
-console.log(h5(3))
+//console.log(h5(3))
+
+//22
+const asyncComposer = (f1, f2) => {
+  return function (a, callback) {
+    f1(a, function (err1, result1) {
+      if (err1) return callback(err1, null);
+      f2(result1, function (err2, result2) {
+        if (err2) return callback(err2, null);
+        callback(null, result2);
+      });
+    });
+  };
+};
+
+//let a1 = function (a, callback) {
+//  callback(null, a + 1);
+//};
+//let a3 = asyncComposer(a1, a1);
+//a3(3, function (error, result) {
+//  console.log(result);
+//});
+
+//23
+p1 = Promise.resolve(0)
+  .then((x) => x + 1)
+  .then((x) => x + 2)
+  .then((x) => x + 4);
+p2 = Promise.reject(0)
+  .then((x) => x + 1)
+  .catch((x) => x + 2)
+  .then((x) => x + 4);
+p3 = Promise.resolve(0)
+  .then((x) => x + 1)
+  .then((x) => x + 2)
+  .catch((x) => x + 4)
+  .then((x) => x + 8);
+p4 = Promise.reject(0)
+  .then((x) => x + 1)
+  .then((x) => x + 2)
+  .catch((x) => x + 4)
+  .then((x) => x + 8);
+p5 = Promise.reject(0)
+  .then((x) => x + 1, null)
+  .catch((x) => x + 2)
+  .catch((x) => x + 4);
+
+//setTimeout(() => {
+//  p1.then(x => console.log("p1:", x));
+//  p2.then(x => console.log("p2:", x));
+//  p3.then(x => console.log("p3:", x));
+//  p4.then(x => console.log("p4:", x));
+//  p5.then(x => console.log("p5:", x));
+//}, 1000);
+
+//24
+const antipromise = (f) => {
+  return new Promise((resolve, reject) => {
+    f.then((result) => {
+      reject(result);
+    }).catch((error) => {
+      resolve(error);
+    });
+  });
+};
+
+antipromise(Promise.reject(0)).then(console.log);
+antipromise(Promise.resolve(1)).catch(console.log);
+
+//25
+const promiseToCallback = (f) => {
+  return function (x, callback) {
+    f(x).then(
+      (result) => callback(null, result),
+      (error) => callback(error, null)
+    );
+  }
+};
+
+//const isEven = (x) =>
+//  new Promise((resolve, reject) => (x % 2 ? reject(x) : resolve(x)));
+//const isEvenCallback = promiseToCallback(isEven);
+//isEven(2).then(
+//  () => console.log("OK"),
+//  () => console.log("KO")
+//);
+//isEvenCallback(2, (err, res) => console.log(err, res));
+//isEven(3).then(
+//  () => console.log("OK"),
+//  () => console.log("KO")
+//);
+//isEvenCallback(3, (err, res) => console.log(err, res));
+
+//26
+const readToPromise = (filename) => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(filename, "utf8", (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
+
+readToPromise("fileA.txt").then(x => console.log("Contents: ", x))
+.catch(x => console.log("Error: ", x));
+readToPromise("notfound.txt").then(x => console.log("Contents: ", x))
+.catch(x => console.log("Error: ", x));
+
+//27
+const callbackToPromise = (f) => {
+  return function (...args) {
+    return new Promise((resolve, reject) => {
+      f(...args, (err, result) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  };
+}
+
+const readToPromise2 = callbackToPromise(fs.readFile);
+readToPromise2("a1.txt").then(x => console.log("Contents: ", x))
+.catch(x => console.log("Error: ", x));
