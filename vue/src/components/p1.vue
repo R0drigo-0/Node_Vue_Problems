@@ -35,5 +35,7 @@ div {
   min-width: 100px;
   min-height: 100px;
   border: 1px solid black;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 </style>

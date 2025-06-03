@@ -14,8 +14,19 @@ export default {
 </script>
 
 <template>
-  <WordsToList words="Lorem ipsum dolor sit amet"/>
+<div>
+  <WordsToList words="Lorem ipsum dolor sit amet" class="WordsToList"/>
+</div>
 </template>
 
 <style scoped>
+div {
+  border: 1px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 150px;
+  width: 150px;
+  padding-right: 25px;
+}
 </style>
