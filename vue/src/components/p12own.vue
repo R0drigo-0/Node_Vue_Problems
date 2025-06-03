@@ -1,23 +1,24 @@
-<script>
+﻿<script>
 export default {
   name: "P12",
   data() {
     return {
       phone_books: [
-        { name: "Jaime Sommers", phone: "311-555-2368" },
-        { name: "Ghostbusters", phone: "555-2368" },
-        { name: "Mr. Plow", phone: "636-555-3226" },
+        { isDeleted: false, name: "Jaime Sommers", phone: "311-555-2368" },
+        { isDeleted: false, name: "Ghostbusters", phone: "555-2368" },
+        { isDeleted: false, name: "Mr. Plow", phone: "636-555-3226" },
         {
+          isDeleted: false,
           name: "Gene Parmesan: Private Eye",
           phone: "555-0113",
         },
-        { name: "The A-Team", phone: "555-6162" },
+        { isDeleted: false, name: "The A-Team", phone: "555-6162" },
       ],
     };
   },
   methods: {
-    deleteEntry(index) {
-      this.phone_books.splice(index, 1)
+    deleteEntry(entry) {
+      entry.isDeleted = true;
     },
   },
 };
@@ -33,11 +34,14 @@ export default {
       </tr>
     </thead>
     <tbody>
-      <tr v-for="(entry, index) in phone_books" v-bind:key="index">
+      <tr
+        v-for="(entry, index) in phone_books.filter((entry) => !entry.isDeleted)"
+        v-bind:key="index"
+      >
         <td>{{ entry.name }}</td>
         <td>{{ entry.phone }}</td>
         <td>
-          <button v-on:click="deleteEntry(index)">Delete</button>
+          <button v-on:click="deleteEntry(entry)">Delete</button>
         </td>
       </tr>
     </tbody>

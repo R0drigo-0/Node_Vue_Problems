@@ -10,7 +10,8 @@ import p8 from './components/p8.vue';
 import p9 from './components/p9.vue';
 import p10 from './components/p10.vue';
 import p11 from './components/p11.vue';
-import p12 from './components/p12.vue';
+import p12own from './components/p12own.vue';
+import p12 from './components/p12own.vue';
 import p13 from './components/p13.vue';
 import p14 from './components/p14.vue';
 import p15 from './components/p15.vue';
@@ -35,6 +36,7 @@ export default {
     p9,
     p10,
     p11,
+    p12own,
     p12,
     p13,
     p14,
@@ -64,6 +66,7 @@ export default {
     <p9 />
     <p10 />
     <p11 />
+    <p12own />
     <p12 />
     <p13 />
     <p14 />
