@@ -4,7 +4,7 @@ export default {
   name: "P21",
   data() {
     return {
-      
+      isChecked: false,
     }
   },
   components: {
@@ -15,8 +15,8 @@ export default {
 
 <template>
   <div>
-    <input type="checkbox" />
-    <DoubleCheckbox/>
+    <input type="checkbox" v-model="isChecked"/>
+    <DoubleCheckbox v-model:isChecked="isChecked"/>
   </div>
 </template>
 
