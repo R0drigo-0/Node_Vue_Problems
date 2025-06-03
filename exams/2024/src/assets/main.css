@@ -1,0 +1,17 @@
+/* Style for the text container */
+.label {
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  color: #333;
+  /* Text color */
+  padding: 2px 2px 0 0;
+  /* Add some padding for readability */
+}
+
+/* Style for numbers within the text */
+.number {
+  font-weight: bold;
+  /* Make numbers stand out */
+  color: #0074d9;
+  /* Customize the color for numbers */
+}
