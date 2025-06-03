@@ -2,7 +2,7 @@
 import WordsToList3 from './WordsToList3.vue';
 
 export default {
-  name: "P16",
+  name: "P17",
   components: {
     WordsToList3
   },
