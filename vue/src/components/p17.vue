@@ -39,7 +39,7 @@ form {
   margin-bottom: 0!important;
 }
 input {
-  width: 172px;
+  width: 112px;
 }
 div {
   margin-top: 0!important;
