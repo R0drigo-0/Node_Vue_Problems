@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: "WordsToList2",
+  name: "WordsToList3",
   props: {
     words: {
       type: String,
