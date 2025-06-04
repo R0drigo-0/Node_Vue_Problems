@@ -14,23 +14,97 @@ there is already a winner or there is a token in the cell. -->
 <!--TODO: 4) When the server returns status 400 (cell not empty) show a red boder in the cell: style="border: 2px solid red"-->
 <!--TODO: 5) When the server returns status 401 (not your turn) emit the event 'message' with the parameter: 'It is not your turn' -->
 <template>
-  <div class="cellExterior" style="">
+  <div
+    class="cellExterior"
+    v-bind:style="{ border: getBorderStyle() }"
+    v-on:click="handleClick"
+  >
     <!-- TODO: Show the token in the paragraph -->
-    <p></p>
+    <p v-if="isFetchProgressing">...</p>
+    <p v-else-if="token && !isFetchProgressing">{{ token }}</p>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Cell',
-
+  name: "Cell",
+  props: {
+    row: {
+      type: Number,
+      required: true,
+    },
+    column: {
+      type: Number,
+      required: true,
+    },
+    playerId: {
+      type: Number,
+      required: true,
+    },
+    gameWinner: {
+      type: Number,
+      required: true,
+    },
+  },
   data() {
     return {
       token: undefined,
       status: 200, //200: OK, 400: not empty cell, 401: not your turn
-    }
+      isFetchProgressing: false,
+    };
   },
-}
+  methods: {
+    getBorderStyle() {
+      if (this.status === 400) {
+        return "2px solid red";
+      } else {
+        return "1px solid black";
+      }
+    },
+    handleClick() {
+      if (
+        this.isFetchProgressing ||
+        this.status !== 200 ||
+        this.gameWinner ||
+        this.token
+      ) {
+        return;
+      }
+
+      this.isFetchProgressing = true;
+      fetch(
+        `http://localhost:3001/cell_click?playerId=${this.playerId}&row=${this.row}&column=${this.column}`
+      )
+        .then((res) => {
+          this.status = res.status;
+          return res.json();
+        })
+        .then((json) => {
+          if (json.gameWinner) {
+            this.$emit("update:gameWinner", json.gameWinner);
+          }
+
+          if (json.token) {
+            this.token = json.token;
+            this.$emit("update:token", this.token);
+          }
+        })
+        .catch(() => {
+          console.error("Error fetching cell click");
+        })
+        .finally(() => {
+          this.isFetchProgressing = false;
+        });
+    },
+  },
+  watch: {
+    status() {
+      if (this.status === 401) {
+        this.$emit("message", "It is not your turn");
+      }
+    },
+  },
+};
 </script>
 
 <style>
