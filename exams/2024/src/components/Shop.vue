@@ -1,17 +1,27 @@
 <script>
 export default {
-
+  name: "Shop",
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+    ordered: {
+      type: Number,
+      required: true,
+    },
+  }
 }
 </script>
 
 <template>
   <div class="shopContainer">
-    <div class="item"><span class="shop_header"><!--TODO: Here goes the shopID--></span></div>
+    <div class="item"><span class="shop_header">{{ this.id }}<!--TODO: Here goes the shopID--></span></div>
     <div class="agrupation">
       <div class="item"><img src="../../images/store.png" /></div>
       <div class="order">
         <span class="label">Ordered:</span>
-        <span class="number"><!--TODO: Here goes the shop orders--></span>
+        <span class="number">{{ this.ordered }}<!--TODO: Here goes the shop orders--></span>
       </div>
     </div>
   </div>

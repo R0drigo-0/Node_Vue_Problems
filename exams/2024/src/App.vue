@@ -2,29 +2,41 @@
 import Shop from './components/Shop.vue'
 import SellForm from './components/SellForm.vue'
 export default {
+  name: "App",
   components: {
     Shop,
     SellForm,
   },
   data() {
     return {
-      orders: undefined,
+      orders: {
+        remainingStock: undefined,
+        details: []
+      }
     }
   },
-
 }
 </script>
 <template>
   <div class="main">
-    <div class="titleContainer"><img src="../jeans.png" class="logo"><span class="title">GJeans Whole Sale</span></div>
-    <div class="item"><SellForm v-model="orders" /></div>
-    <!--TODO: Show this div just if we have orders -->
-    <div class="item"><h3>Retail Chain</h3></div>
-    <!--TODO: Show this div just if we have orders-->
+    <div class="titleContainer">
+      <img src="../jeans.png" class="logo" /><span class="title"
+        >GJeans Whole Sale</span
+      >
+    </div>
+    <div v-if="orders" class="item"><SellForm v-model:orders="orders" /></div>
+    <!--xTODO: Show this div just if we have orders -->
+    <div v-if="orders" class="item"><h3>Retail Chain</h3></div>
+    <!--xsTODO: Show this div just if we have orders-->
     <div class="container">
-      <!--TODO: Use the Shop component for each shop in the orders: 
+      <!--xTODO: Use the Shop component for each shop in the orders: 
         v-for="item in items" or v-for="(item,index) in items"
       -->
+      <Shop
+        v-for="(element, index) in orders?.details || []"
+        :id="element.id"
+        :ordered="element.ordered"
+      />
     </div>
   </div>
 </template>
